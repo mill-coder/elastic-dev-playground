@@ -2,7 +2,7 @@
 
 Elastic platform engineering toolkit — a suite of browser-based developer tools for the Elastic stack.
 
-Everything runs client-side, no server needed.
+Everything runs client-side — the production Docker image includes a lightweight Node.js server for API proxying.
 
 ### special thanks
 
@@ -18,9 +18,11 @@ Special thanks for the work done by [breml](https://github.com/breml) for his lo
 - **Kibana pipeline management** — connect to Kibana to list, load, save, and delete Logstash pipelines via Centralized Pipeline Management
 - **Dark theme editor** — CodeMirror 6 with monospace font, fills the viewport
 
-### elastic data import in sandbox instance
+### Import Data
 
-(coming soon)
+- **Cross-cluster data copy** — copy documents from one Elasticsearch cluster to another using scroll/bulk API
+- **Index filtering** — select source indices, apply query filters
+- **Progress tracking** — real-time document count and transfer status
 
 
 ## Quick start
@@ -45,14 +47,16 @@ This builds the WASM parser, installs npm dependencies, and starts Vite at `http
 make build
 ```
 
-Outputs static files to `dist/` — deploy to any HTTP server or GitHub Pages.
+Outputs static files to `dist/`.
 
 ### Docker
 
 ```bash
 docker build -t elastic-dev-playground .
-docker run -p 8080:80 elastic-dev-playground
+docker run -p 3000:3000 elastic-dev-playground
 ```
+
+The Docker image includes a Node.js production server that serves static files and proxies Kibana/ES API requests (same proxy logic as the Vite dev server).
 
 ## How it works
 
@@ -74,7 +78,8 @@ The Go parser ([breml/logstash-config](https://github.com/breml/logstash-config)
 ```
 elastic-dev-playground/
 ├── Makefile               # Build targets: wasm, dev, build, clean
-├── Dockerfile             # Multi-stage build (Go -> Node -> nginx)
+├── Dockerfile             # Multi-stage build (Go -> Node -> Node.js server)
+├── server.js              # Production server: static files + API proxy
 ├── go/
 │   ├── main.go            # WASM entry point + error extraction
 │   ├── registry.go        # Known plugins, codecs, and option schemas
@@ -83,9 +88,13 @@ elastic-dev-playground/
     ├── index.html
     ├── vite.config.js
     └── src/
-        ├── main.js         # App init: load WASM, create editor
-        ├── wasm-bridge.js  # WASM loading + JS wrapper
-        ├── editor.js       # CodeMirror 6 setup + lint integration
+        ├── main.js              # App init: load WASM, create editor, wire panel
+        ├── wasm-bridge.js       # WASM loading + JS wrapper
+        ├── editor.js            # CodeMirror 6 setup + lint integration
+        ├── kibana-api.js        # Kibana CPM API client
+        ├── pipeline-panel.js    # Pipeline panel UI
+        ├── elasticsearch-api.js # ES API client (scroll, bulk, count, mapping)
+        ├── import-data.js       # Import Data page UI
         └── style.css
 ```
 
@@ -105,6 +114,22 @@ The editor can connect to a Kibana instance with Centralized Pipeline Management
 3. Click **Connect** to list available pipelines
 4. **Load** a pipeline into the editor, edit it, and **Save** back to Kibana
 5. Use **Save As** to create new pipelines with a custom ID
+
+## Import Data
+
+Copy documents between Elasticsearch clusters directly from the browser.
+
+### Prerequisites
+
+- Two Elasticsearch clusters accessible from the server (or via the Vite dev proxy)
+
+### Usage
+
+1. Click **Import Data** in the navigation bar
+2. Enter the source cluster URL and credentials, click **Connect**
+3. Select the source index and optionally apply a query filter
+4. Enter the destination cluster URL and credentials, click **Connect**
+5. Click **Start Import** to begin copying documents via scroll/bulk API
 
 ## License
 
