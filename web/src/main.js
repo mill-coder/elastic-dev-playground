@@ -13,26 +13,24 @@ function navigate(hash) {
 }
 
 async function init() {
-  const status = document.getElementById('status');
-  try {
-    await initWasm();
-    status.textContent = 'Parser ready';
-    status.classList.add('ready');
-  } catch (err) {
-    status.textContent = `Failed to load parser: ${err.message}`;
-    status.classList.add('error');
-    console.error('WASM init failed:', err);
-  }
+  const parserStatus = { text: 'Loading WASM parser...', state: '' };
 
   const editorApi = createEditor(document.getElementById('editor'));
 
   const pageEditor = document.getElementById('page-editor');
-  const panel = createPipelinePanel(editorApi);
+  const panel = createPipelinePanel(editorApi, parserStatus);
   pageEditor.insertBefore(panel, pageEditor.firstChild);
 
-  document.getElementById('pipelines-toggle').addEventListener('click', () => {
-    panel.toggle();
-  });
+  try {
+    await initWasm();
+    parserStatus.text = 'Parser ready';
+    parserStatus.state = 'ready';
+  } catch (err) {
+    parserStatus.text = `Failed to load parser: ${err.message}`;
+    parserStatus.state = 'error';
+    console.error('WASM init failed:', err);
+  }
+  panel.updateParserStatus(parserStatus);
 
   navigate(window.location.hash || '#editor');
   window.addEventListener('hashchange', () => navigate(window.location.hash));

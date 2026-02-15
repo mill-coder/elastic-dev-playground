@@ -70,18 +70,17 @@ header {
   background: #37373d;
 }
 
-#status {
+.parser-status {
   font-size: 12px;
   color: #888;
   flex-shrink: 0;
-  margin-left: 16px;
 }
 
-#status.ready {
+.parser-status.ready {
   color: #4ec9b0;
 }
 
-#status.error {
+.parser-status.error {
   color: #f44747;
 }
 
@@ -177,8 +176,25 @@ header {
   flex-shrink: 0;
 }
 
-.pipeline-panel.collapsed {
-  display: none;
+.submenu-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.disconnect-btn {
+  cursor: pointer;
+  font-size: 16px;
+  color: #888;
+  border: none;
+  background: none;
+  padding: 0 2px;
+  transition: color 0.15s;
+  line-height: 1;
+}
+
+.disconnect-btn:hover {
+  color: #f44747;
 }
 
 .pipeline-panel-content {
@@ -287,7 +303,7 @@ header {
   width: 1px;
   height: 20px;
   background: #555;
-  margin: 0 4px;
+  margin: 0 8px;
 }
 
 .pipeline-connected-info {

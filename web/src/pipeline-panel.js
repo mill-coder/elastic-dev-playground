@@ -27,9 +27,9 @@ function showToast(container, message, isError) {
   setTimeout(() => toast.remove(), 3000);
 }
 
-export function createPipelinePanel(editorApi) {
+export function createPipelinePanel(editorApi, parserStatus) {
   const panel = document.createElement('div');
-  panel.className = 'pipeline-panel collapsed';
+  panel.className = 'pipeline-panel';
 
   const toastContainer = document.createElement('div');
   toastContainer.className = 'toast-container';
@@ -42,6 +42,7 @@ export function createPipelinePanel(editorApi) {
   let pipelines = [];
   let currentPipelineId = null;
   let currentDescription = '';
+  let statusEl = null;
 
   function toast(msg, isError) {
     showToast(toastContainer, msg, isError);
@@ -61,12 +62,25 @@ export function createPipelinePanel(editorApi) {
     panel.appendChild(content);
   }
 
+  function buildStatusEl() {
+    statusEl = el('span', {
+      textContent: parserStatus.text,
+      className: 'parser-status' + (parserStatus.state ? ' ' + parserStatus.state : ''),
+    });
+    return statusEl;
+  }
+
   function buildConnectForm() {
     const form = document.createElement('div');
     form.className = 'pipeline-form';
 
     const creds = loadCredentials();
 
+    const group1 = el('div', { className: 'submenu-group' });
+    group1.appendChild(buildStatusEl());
+    const sep1 = el('span', { className: 'pipeline-separator' });
+
+    const group2 = el('div', { className: 'submenu-group' });
     const urlInput = el('input', {
       type: 'text', placeholder: 'Kibana URL', value: creds.kibanaUrl || 'http://localhost:5601',
       className: 'pipeline-input pipeline-input-url',
@@ -99,7 +113,6 @@ export function createPipelinePanel(editorApi) {
 
         const ok = await testConnection(kibanaUrl, username, password);
         if (!ok) {
-          // testConnection swallows errors, try listing to get the real error
           await listPipelines(kibanaUrl, username, password);
         }
 
@@ -117,7 +130,8 @@ export function createPipelinePanel(editorApi) {
       }
     });
 
-    form.append(urlInput, userInput, passInput, connectBtn);
+    group2.append(urlInput, userInput, passInput, connectBtn);
+    form.append(group1, sep1, group2);
     return form;
   }
 
@@ -125,13 +139,39 @@ export function createPipelinePanel(editorApi) {
     const view = document.createElement('div');
     view.className = 'pipeline-manage';
 
-    // Connection info
+    // Group 1 — Connection: parser status + disconnect + connection info
+    const group1 = el('div', { className: 'submenu-group' });
+    group1.appendChild(buildStatusEl());
+
+    const sep1 = el('span', { className: 'pipeline-separator' });
+
+    const group2 = el('div', { className: 'submenu-group' });
+    const disconnectEmoji = el('span', {
+      textContent: '\u23CF',
+      className: 'disconnect-btn',
+      title: 'Disconnect from Kibana',
+    });
     const info = el('span', {
       textContent: `Connected to ${kibanaUrl}`,
       className: 'pipeline-connected-info',
     });
 
-    // Pipeline dropdown
+    disconnectEmoji.addEventListener('click', () => {
+      connected = false;
+      pipelines = [];
+      currentPipelineId = null;
+      currentDescription = '';
+      clearCredentials();
+      toast('Disconnected');
+      render();
+    });
+
+    group2.append(disconnectEmoji, info);
+
+    // Group 2 — Pipelines: select, Load, Save, Delete, Refresh
+    const sep2 = el('span', { className: 'pipeline-separator' });
+    const group3 = el('div', { className: 'submenu-group' });
+
     const select = el('select', { className: 'pipeline-select' });
     if (pipelines.length === 0) {
       select.appendChild(el('option', { textContent: '(no pipelines)', value: '', disabled: true, selected: true }));
@@ -149,17 +189,6 @@ export function createPipelinePanel(editorApi) {
     const deleteBtn = el('button', { textContent: 'Delete', className: 'pipeline-btn pipeline-btn-danger' });
     const refreshBtn = el('button', { textContent: 'Refresh', className: 'pipeline-btn pipeline-btn-secondary' });
 
-    const sep = el('span', { className: 'pipeline-separator' });
-
-    const newIdInput = el('input', {
-      type: 'text', placeholder: 'new-pipeline-id',
-      className: 'pipeline-input pipeline-input-id',
-    });
-    const saveAsBtn = el('button', { textContent: 'Save As', className: 'pipeline-btn pipeline-btn-primary' });
-
-    const disconnectBtn = el('button', { textContent: 'Disconnect', className: 'pipeline-btn pipeline-btn-secondary' });
-
-    // Event handlers
     loadBtn.addEventListener('click', async () => {
       const id = select.value;
       if (!id) { toast('Select a pipeline first', true); return; }
@@ -212,6 +241,18 @@ export function createPipelinePanel(editorApi) {
       }
     });
 
+    group3.append(select, loadBtn, saveBtn, deleteBtn, refreshBtn);
+
+    // Group 3 — New: new pipeline ID input, Save As
+    const sep3 = el('span', { className: 'pipeline-separator' });
+    const group4 = el('div', { className: 'submenu-group' });
+
+    const newIdInput = el('input', {
+      type: 'text', placeholder: 'new-pipeline-id',
+      className: 'pipeline-input pipeline-input-id',
+    });
+    const saveAsBtn = el('button', { textContent: 'Save As', className: 'pipeline-btn pipeline-btn-primary' });
+
     saveAsBtn.addEventListener('click', async () => {
       const id = newIdInput.value.trim();
       if (!id) { toast('Enter a pipeline ID', true); return; }
@@ -227,22 +268,9 @@ export function createPipelinePanel(editorApi) {
       }
     });
 
-    disconnectBtn.addEventListener('click', () => {
-      connected = false;
-      pipelines = [];
-      currentPipelineId = null;
-      currentDescription = '';
-      clearCredentials();
-      toast('Disconnected');
-      render();
-    });
+    group4.append(newIdInput, saveAsBtn);
 
-    view.append(
-      info, select, loadBtn, saveBtn, deleteBtn, refreshBtn,
-      sep,
-      newIdInput, saveAsBtn,
-      disconnectBtn,
-    );
+    view.append(group1, sep1, group2, sep2, group3, sep3, group4);
     return view;
   }
 
@@ -252,9 +280,13 @@ export function createPipelinePanel(editorApi) {
     return elem;
   }
 
-  // Public toggle method
-  panel.toggle = function () {
-    panel.classList.toggle('collapsed');
+  panel.updateParserStatus = function ({ text, state }) {
+    parserStatus.text = text;
+    parserStatus.state = state;
+    if (statusEl) {
+      statusEl.textContent = text;
+      statusEl.className = 'parser-status' + (state ? ' ' + state : '');
+    }
   };
 
   render();

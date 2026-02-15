@@ -1,13 +1,27 @@
 # Elastic Dev Playground
 
-Elastic platform engineering toolkit — a suite of browser-based developer tools for the Elastic stack. The first feature is a Logstash configuration editor with live error highlighting and semantic validation, powered by a Go parser compiled to WebAssembly — everything runs client-side, no server needed.
+Elastic platform engineering toolkit — a suite of browser-based developer tools for the Elastic stack.
+
+Everything runs client-side, no server needed.
+
+### special thanks
+
+Special thanks for the work done by [breml](https://github.com/breml) for his logstash config parser: [breml/logstash-config](https://github.com/breml/logstash-config)
+
 
 ## Features
+
+### logstash pipeline config writer
 
 - **Syntax error highlighting** — red underlines and gutter icons on parse errors, powered by [breml/logstash-config](https://github.com/breml/logstash-config) PEG parser
 - **Semantic validation** — yellow warnings for unknown plugin names, unknown options, and invalid codec names
 - **Kibana pipeline management** — connect to Kibana to list, load, save, and delete Logstash pipelines via Centralized Pipeline Management
 - **Dark theme editor** — CodeMirror 6 with monospace font, fills the viewport
+
+### elastic data import in sandbox instance
+
+(coming soon)
+
 
 ## Quick start
 
@@ -81,7 +95,7 @@ The editor can connect to a Kibana instance with Centralized Pipeline Management
 
 ### Prerequisites
 
-- Kibana with Logstash CPM enabled (e.g., [elastic-lab](https://github.com/nouknouk/elastic-lab) or any Kibana 7.x/8.x with `xpack.management.enabled: true` in Logstash)
+- Kibana with Logstash CPM enabled (e.g., [elastic-sandbox](https://github.com/mill-coder/elastic-sandbox) or any Kibana 7.x/8.x with `xpack.management.enabled: true` in Logstash)
 - The Vite dev server (`make dev`) provides a proxy to bypass CORS restrictions
 
 ### Usage
