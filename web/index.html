@@ -16,11 +16,10 @@
       <span class="header-title">elastic-dev-playground</span>
     </div>
     <nav class="header-nav">
-      <a href="#editor" class="nav-link active" data-page="editor">Editor</a>
+      <a href="#editor" class="nav-link active" data-page="editor">Logstash Editor</a>
       <a href="#docs" class="nav-link" data-page="docs">Documentation</a>
-      <button id="pipelines-toggle" class="nav-link">Pipelines</button>
+      <a href="#import-data" class="nav-link" data-page="import-data">Import Data</a>
     </nav>
-    <span id="status">Loading WASM parser...</span>
   </header>
 
   <div id="page-editor" class="page">
@@ -33,7 +32,7 @@
       <p>Welcome to Elastic Dev Playground — a platform engineering toolkit for the Elastic stack, starting with a browser-based Logstash configuration editor with live error highlighting.</p>
 
       <h3>Getting Started</h3>
-      <p>Use the <strong>Editor</strong> tab to write your Logstash configuration. Syntax errors are highlighted in real-time using a Go-based parser compiled to WebAssembly.</p>
+      <p>Use the <strong>Logstash Editor</strong> tab to write your Logstash configuration. Syntax errors are highlighted in real-time using a Go-based parser compiled to WebAssembly.</p>
 
       <h3>Configuration Structure</h3>
       <p>A Logstash configuration file has three sections:</p>
@@ -52,8 +51,18 @@
       </ul>
 
       <h3>Kibana Integration</h3>
-      <p>Click <strong>Pipelines</strong> in the header to connect to a Kibana instance with Centralized Pipeline Management enabled. You can list, load, edit, and save Logstash pipelines directly from the editor.</p>
+      <p>Use the sub-menu bar on the <strong>Logstash Editor</strong> page to connect to a Kibana instance with Centralized Pipeline Management enabled. You can list, load, edit, and save Logstash pipelines directly from the editor.</p>
       <p>The Vite dev server proxies requests to Kibana to bypass CORS restrictions. Enter your Kibana URL, username, and password to get started.</p>
+
+      <h3>Import Data</h3>
+      <p>The <strong>Import Data</strong> tab is a placeholder for importing data from a deployed Elastic stack into a lab stack. This feature is coming soon.</p>
+    </div>
+  </div>
+
+  <div id="page-import-data" class="page" style="display:none">
+    <div class="docs-content">
+      <h2>Import Data</h2>
+      <p>Import data from a deployed Elastic stack into the lab stack. (Coming soon)</p>
     </div>
   </div>
 

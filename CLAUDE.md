@@ -5,21 +5,32 @@
 Elastic platform engineering toolkit — a suite of browser-based developer tools for the Elastic stack. The first feature is a **Logstash configuration editor** with live error highlighting, powered by a Go parser compiled to WebAssembly. No server needed — everything runs client-side.
 
 - **License**: MIT
-- **Status**: Pre-alpha (scaffolding phase)
+- **Status**: Beta
 - **Detailed implementation plans**: see [`plans/`](plans/) — features are independent and can be implemented in any order
+
+### Feature status
+
+| # | Feature | Plan | Status |
+|---|---------|------|--------|
+| 1 | Syntax error highlighting | `plans/feature-1-syntax-errors.md` | Done |
+| 2 | Semantic validation | `plans/feature-2-semantic-validation.md` | Done |
+| 3 | Code completion | `plans/feature-3-code-completion.md` | Not started |
+| 4 | Registry scraper | `plans/feature-4-registry-scraper.md` | Not started |
+| 5 | Kibana pipeline management | `plans/feature-5-kibana-pipelines.md` | Done |
 
 ## Architecture
 
 ```
-CodeMirror 6 editor (browser)
-  → onChange (debounced 300ms via CM linter)
-  → JS calls Go WASM: parseLogstashConfig(source) → JSON string
-  → Go calls github.com/breml/logstash-config Parse()
-  → Extracts error positions via regex on pigeon parser error strings
-  → Returns {ok, diagnostics: [{from, to, severity, message}]}
-  → JS feeds diagnostics to CodeMirror's linter/lintGutter
-  → Red underlines + gutter icons on errors
+Browser-based SPA (Vite + vanilla JS)
+├── Logstash Editor — CodeMirror 6 + Go WASM parser
+│   ├── Live syntax errors (pigeon parser → diagnostics)
+│   ├── Semantic validation (AST walker + plugin registry)
+│   └── Kibana CPM integration (list/load/save/delete pipelines)
+├── Import Data — (placeholder, coming soon)
+└── Documentation — in-app feature reference
 ```
+
+For the detailed parser→CodeMirror data flow, see [`docs/parser-integration.md`](docs/parser-integration.md).
 
 ### Components
 
@@ -29,10 +40,6 @@ CodeMirror 6 editor (browser)
 | Web frontend | Vite + CodeMirror 6 | `web/` |
 | Kibana integration | Vite proxy + fetch API | `web/src/kibana-api.js`, `web/src/pipeline-panel.js` |
 | Build system | Makefile | root |
-
-### Key dependency
-
-- **[breml/logstash-config](https://github.com/breml/logstash-config)** (Apache 2.0) — Pure Go PEG parser for the Logstash config format. Provides `Parse()` function and `GetFarthestFailure()`. All parser error types are unexported (pigeon-generated), so we extract positions by regex-parsing error strings.
 
 ## Tech stack
 
@@ -53,6 +60,8 @@ elastic-dev-playground/
 │   ├── feature-3-code-completion.md
 │   ├── feature-4-registry-scraper.md
 │   └── feature-5-kibana-pipelines.md
+├── docs/
+│   └── parser-integration.md  # Detailed parser→editor data flow
 ├── Makefile               # Build targets: wasm, dev, build, clean
 ├── .gitignore
 ├── LICENSE
@@ -61,8 +70,7 @@ elastic-dev-playground/
 │   ├── go.sum
 │   ├── main.go            # WASM entry: parser bridge + error extraction
 │   ├── registry.go        # Known plugins, codecs, and option schemas
-│   ├── validate.go        # AST walker for semantic validation
-│   └── complete.go        # Autocompletion context detection + generation
+│   └── validate.go        # AST walker for semantic validation
 └── web/
     ├── package.json
     ├── vite.config.js
