@@ -15,7 +15,10 @@ COPY --from=wasm-builder /out/parser.wasm public/parser.wasm
 COPY --from=wasm-builder /out/wasm_exec.js public/wasm_exec.js
 RUN npx vite build --outDir /out
 
-# Stage 3: Serve with nginx
-FROM docker.io/library/nginx:alpine
-COPY --from=web-builder /out /usr/share/nginx/html
-EXPOSE 80
+# Stage 3: Serve with Node.js (static files + API proxy)
+FROM docker.io/library/node:22-alpine
+WORKDIR /app
+COPY server.js .
+COPY --from=web-builder /out ./dist
+EXPOSE 3000
+CMD ["node", "server.js"]

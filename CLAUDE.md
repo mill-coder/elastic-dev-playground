@@ -28,7 +28,8 @@ Browser-based SPA (Vite + vanilla JS)
 │   ├── Semantic validation (AST walker + plugin registry)
 │   └── Kibana CPM integration (list/load/save/delete pipelines)
 ├── Import Data — Copy data between ES clusters via scroll/bulk API
-└── Documentation — in-app feature reference
+├── Documentation — in-app feature reference
+└── Production server — Node.js static serving + API proxy (Kibana/ES)
 ```
 
 For the detailed parser→CodeMirror data flow, see [`docs/parser-integration.md`](docs/parser-integration.md).
@@ -41,6 +42,7 @@ For the detailed parser→CodeMirror data flow, see [`docs/parser-integration.md
 | Web frontend | Vite + CodeMirror 6 | `web/` |
 | Kibana integration | Vite proxy + fetch API | `web/src/kibana-api.js`, `web/src/pipeline-panel.js` |
 | Import data | Vite proxy + ES scroll/bulk API | `web/src/elasticsearch-api.js`, `web/src/import-data.js` |
+| Production server | Node.js (built-in modules) | `server.js` |
 | Build system | Makefile | root |
 
 ## Tech stack
@@ -49,13 +51,14 @@ For the detailed parser→CodeMirror data flow, see [`docs/parser-integration.md
 - **Node.js 18+** — for Vite dev server and npm deps
 - **Vite** — zero-config bundler for the frontend
 - **CodeMirror 6** — modular editor with built-in `linter()` extension
-- **No backend** — fully static, deployable to any HTTP server or GitHub Pages
+- **Production server** — zero-dependency Node.js server (`server.js`) for static files + Kibana/ES proxy in Docker
 
 ## Project structure
 
 ```
 elastic-dev-playground/
 ├── CLAUDE.md              # This file
+├── server.js              # Production server: static files + API proxy
 ├── plans/                 # Detailed implementation plans
 │   ├── feature-1-syntax-errors.md
 │   ├── feature-2-semantic-validation.md
@@ -106,4 +109,8 @@ elastic-dev-playground/
 make dev      # Build WASM + start Vite dev server
 make build    # Production build into dist/
 make clean    # Remove all build artifacts
+
+# Docker
+docker build -t elastic-dev-playground .
+docker run -p 3000:3000 elastic-dev-playground
 ```
