@@ -1,6 +1,7 @@
 import { initWasm } from './wasm-bridge.js';
 import { createEditor } from './editor.js';
 import { createPipelinePanel } from './pipeline-panel.js';
+import { createImportDataPage } from './import-data.js';
 
 function navigate(hash) {
   const page = hash.replace('#', '') || 'editor';
@@ -20,6 +21,9 @@ async function init() {
   const pageEditor = document.getElementById('page-editor');
   const panel = createPipelinePanel(editorApi, parserStatus);
   pageEditor.insertBefore(panel, pageEditor.firstChild);
+
+  const importPage = document.getElementById('page-import-data');
+  importPage.appendChild(createImportDataPage());
 
   try {
     await initWasm();

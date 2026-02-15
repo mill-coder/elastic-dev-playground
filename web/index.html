@@ -55,16 +55,12 @@
       <p>The Vite dev server proxies requests to Kibana to bypass CORS restrictions. Enter your Kibana URL, username, and password to get started.</p>
 
       <h3>Import Data</h3>
-      <p>The <strong>Import Data</strong> tab is a placeholder for importing data from a deployed Elastic stack into a lab stack. This feature is coming soon.</p>
+      <p>Use the <strong>Import Data</strong> tab to copy data between Elasticsearch clusters. Connect to a source cluster, select an index or data stream, configure optional filters (date range, field filters), then connect to a destination cluster and start the import. Progress is tracked in real-time with cancel support.</p>
+      <p>The Vite dev server proxies requests to Elasticsearch to bypass CORS restrictions.</p>
     </div>
   </div>
 
-  <div id="page-import-data" class="page" style="display:none">
-    <div class="docs-content">
-      <h2>Import Data</h2>
-      <p>Import data from a deployed Elastic stack into the lab stack. (Coming soon)</p>
-    </div>
-  </div>
+  <div id="page-import-data" class="page" style="display:none"></div>
 
   <script src="/wasm_exec.js"></script>
   <script type="module" src="/src/main.js"></script>
