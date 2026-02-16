@@ -4,7 +4,9 @@
 
 Connect the elastic-dev-playground editor to a Kibana instance with Centralized Pipeline Management (CPM) enabled. Users can list, load, edit, save, and delete Logstash pipelines directly from the browser — closing the loop between editing and deployment.
 
-**Scope**: Kibana CPM API integration via a Vite dev-server proxy. No production backend — proxy is dev-only; production deployments would need a separate CORS proxy or direct Kibana access.
+**Scope**: Kibana CPM API integration via a Vite dev-server proxy.
+
+> **Note (superseded)**: This plan originally stated that the proxy was dev-only. Since then, `server.js` was added to provide the same proxy functionality in production Docker deployments.
 
 ---
 
@@ -151,6 +153,6 @@ Programmatic DOM construction. Manages connect/disconnect state, pipeline CRUD, 
 | Risk | Mitigation |
 |------|------------|
 | Kibana API changes | Pin to Kibana 8.x; API has been stable since 7.x |
-| No CORS in production | Document that proxy is dev-only; suggest nginx proxy for prod |
+| No CORS in production | ~~Dev-only~~ — now handled by `server.js` in Docker production builds |
 | Credentials in localStorage | Acceptable for local dev tool; document the trade-off |
 | Large pipeline configs | CodeMirror handles large docs well; no special handling needed |

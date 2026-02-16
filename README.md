@@ -105,7 +105,7 @@ The editor can connect to a Kibana instance with Centralized Pipeline Management
 ### Prerequisites
 
 - Kibana with Logstash CPM enabled (e.g., [elastic-sandbox](https://github.com/mill-coder/elastic-sandbox) or any Kibana 7.x/8.x with `xpack.management.enabled: true` in Logstash)
-- The Vite dev server (`make dev`) provides a proxy to bypass CORS restrictions
+- The Vite dev server (`make dev`) or the Docker production server provides a proxy to bypass CORS restrictions
 
 ### Usage
 

@@ -2,7 +2,7 @@
 
 ## Project identity
 
-Elastic platform engineering toolkit — a suite of browser-based developer tools for the Elastic stack. The first feature is a **Logstash configuration editor** with live error highlighting, powered by a Go parser compiled to WebAssembly. No server needed — everything runs client-side.
+Elastic platform engineering toolkit — a suite of browser-based developer tools for the Elastic stack. The first feature is a **Logstash configuration editor** with live error highlighting, powered by a Go parser compiled to WebAssembly. The production Docker image includes a lightweight Node.js server for API proxying (Kibana/ES).
 
 - **License**: MIT
 - **Status**: Beta
@@ -58,6 +58,9 @@ For the detailed parser→CodeMirror data flow, see [`docs/parser-integration.md
 ```
 elastic-dev-playground/
 ├── CLAUDE.md              # This file
+├── README.md              # Project overview and usage guide
+├── Dockerfile             # Multi-stage build (Go → Node → Node.js server)
+├── .dockerignore          # Docker build exclusions
 ├── server.js              # Production server: static files + API proxy
 ├── plans/                 # Detailed implementation plans
 │   ├── feature-1-syntax-errors.md

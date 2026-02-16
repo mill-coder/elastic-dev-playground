@@ -31,7 +31,7 @@ function kibanaProxyPlugin() {
           {
             method: req.method,
             headers,
-            rejectAuthorized: false,
+            rejectUnauthorized: false,
             ...(isHttps ? { agent: new https.Agent({ rejectUnauthorized: false }) } : {}),
           },
           (proxyRes) => {
@@ -81,7 +81,7 @@ function esProxyPlugin() {
           {
             method: req.method,
             headers,
-            rejectAuthorized: false,
+            rejectUnauthorized: false,
             ...(isHttps ? { agent: new https.Agent({ rejectUnauthorized: false }) } : {}),
           },
           (proxyRes) => {
