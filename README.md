@@ -1,5 +1,9 @@
 # Elastic Dev Playground
 
+[![CI](https://github.com/mill-coder/elastic-dev-playground/actions/workflows/ci.yml/badge.svg)](https://github.com/mill-coder/elastic-dev-playground/actions/workflows/ci.yml)
+[![Release](https://github.com/mill-coder/elastic-dev-playground/actions/workflows/release.yml/badge.svg)](https://github.com/mill-coder/elastic-dev-playground/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Elastic platform engineering toolkit — a suite of browser-based developer tools for the Elastic stack.
 
 Everything runs client-side — the production Docker image includes a lightweight Node.js server for API proxying.
@@ -45,7 +49,7 @@ A full-featured browser-based editor for Logstash pipeline configurations, with 
 
 ### Prerequisites
 
-- Go 1.22+
+- Go 1.25+
 - Node.js 18+
 - Make
 
@@ -67,12 +71,27 @@ Outputs static files to `dist/`.
 
 ### Docker
 
+Pre-built images are available from GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/mill-coder/elastic-dev-playground:latest
+docker run -p 3000:3000 ghcr.io/mill-coder/elastic-dev-playground:latest
+```
+
+| Tag | Description |
+|-----|-------------|
+| `:latest` | Most recent release (stable) |
+| `:edge` | Latest build from `main` (may be unstable) |
+| `:x.y.z` | Specific version (e.g., `:1.0.0`) |
+
+To build locally:
+
 ```bash
 docker build -t elastic-dev-playground .
 docker run -p 3000:3000 elastic-dev-playground
 ```
 
-The Docker image includes a Node.js production server that serves static files and proxies Kibana/ES API requests (same proxy logic as the Vite dev server).
+The Docker image includes a Node.js production server that serves static files and proxies Kibana/ES API requests. The proxy targets are configured via request headers (`x-kibana-target`, `x-es-target`), not environment variables.
 
 ## How it works
 

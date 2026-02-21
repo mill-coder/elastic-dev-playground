@@ -1,73 +1,21 @@
-name: Release Docker Image
+name: Release
 
 on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   packages: write
   security-events: write
 
 jobs:
-  static-analysis:
-    name: Static Code Analysis
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.25'
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Go vet
-        run: cd go && GOOS=js GOARCH=wasm go vet ./...
-
-      - name: Staticcheck (Go)
-        run: |
-          go install honnef.co/go/tools/cmd/staticcheck@latest
-          cd go && GOOS=js GOARCH=wasm staticcheck ./...
-
-      - name: Install JS dependencies
-        run: cd web && npm ci
-
-      - name: ESLint (JS)
-        run: cd web && npx --no-install eslint src/
-
-  dependency-scanning:
-    name: Dependency Scanning
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Go dependency scan (Trivy)
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: fs
-          scan-ref: go/
-          scanners: vuln
-          severity: CRITICAL,HIGH
-          exit-code: '1'
-
-      - name: npm audit
-        run: cd web && npm audit --audit-level=high
-
   build-and-push:
-    name: Build & Push Image
-    needs: [static-analysis, dependency-scanning]
+    name: Build & Push Release Image
     runs-on: ubuntu-latest
     outputs:
-      image: ${{ steps.meta.outputs.tags }}
+      version: ${{ steps.meta.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
@@ -117,7 +65,7 @@ jobs:
       - name: Trivy vulnerability scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ghcr.io/${{ github.repository }}:latest
+          image-ref: ghcr.io/${{ github.repository }}:${{ needs.build-and-push.outputs.version }}
           format: sarif
           output: trivy-results.sarif
           severity: CRITICAL,HIGH
@@ -127,3 +75,15 @@ jobs:
         if: always()
         with:
           sarif_file: trivy-results.sarif
+
+  github-release:
+    name: Create GitHub Release
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "${{ github.ref_name }}" --generate-notes

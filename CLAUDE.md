@@ -48,11 +48,12 @@ For the detailed parser→CodeMirror data flow, see [`docs/parser-integration.md
 | Import data | Vite proxy + ES scroll/bulk API | `web/src/elasticsearch-api.js`, `web/src/import-data.js` |
 | Context sidebar | WASM context API + vanilla JS | `go/contextinfo.go`, `web/src/context-sidebar.js` |
 | Production server | Node.js (built-in modules) | `server.js` |
+| CI/CD | GitHub Actions | `.github/workflows/` |
 | Build system | Makefile | root |
 
 ## Tech stack
 
-- **Go 1.22+** — compiled to WASM via `GOOS=js GOARCH=wasm`
+- **Go 1.25+** — compiled to WASM via `GOOS=js GOARCH=wasm`
 - **Node.js 18+** — for Vite dev server and npm deps
 - **Vite** — zero-config bundler for the frontend
 - **CodeMirror 6** — modular editor with built-in `linter()` extension
@@ -62,6 +63,11 @@ For the detailed parser→CodeMirror data flow, see [`docs/parser-integration.md
 
 ```
 elastic-dev-playground/
+├── .github/
+│   ├── pull_request_template.md  # PR checklist template
+│   └── workflows/
+│       ├── ci.yml             # CI: lint, dep scan, edge image build
+│       └── release.yml        # Release: versioned image + GitHub Release
 ├── CLAUDE.md              # This file
 ├── README.md              # Project overview and usage guide
 ├── Dockerfile             # Multi-stage build (Go → Node → Node.js server)
@@ -73,7 +79,8 @@ elastic-dev-playground/
 │   ├── feature-3-code-completion.md
 │   ├── feature-4-registry-scraper.md
 │   ├── feature-5-kibana-pipelines.md
-│   └── feature-6-import-data.md
+│   ├── feature-6-import-data.md
+│   └── feature-7-contextual-doc-sidebar.md
 ├── docs/
 │   └── parser-integration.md  # Detailed parser→editor data flow
 ├── Makefile               # Build targets: wasm, dev, build, clean
