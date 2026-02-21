@@ -2,6 +2,7 @@ import { initWasm, getVersions, setVersion } from './wasm-bridge.js';
 import { createEditor } from './editor.js';
 import { createPipelinePanel } from './pipeline-panel.js';
 import { createImportDataPage } from './import-data.js';
+import { createContextSidebar } from './context-sidebar.js';
 
 function navigate(hash) {
   const page = hash.replace('#', '') || 'editor';
@@ -21,6 +22,19 @@ async function init() {
   const pageEditor = document.getElementById('page-editor');
   const panel = createPipelinePanel(editorApi, parserStatus);
   pageEditor.insertBefore(panel, pageEditor.firstChild);
+
+  // Context sidebar
+  const sidebar = createContextSidebar();
+
+  // Debounced sidebar updates on cursor activity
+  let sidebarTimer = null;
+  editorApi.onCursorActivity((pos) => {
+    clearTimeout(sidebarTimer);
+    sidebarTimer = setTimeout(() => {
+      const source = editorApi.getContent();
+      sidebar.update(source, pos);
+    }, 150);
+  });
 
   const importPage = document.getElementById('page-import-data');
   importPage.appendChild(createImportDataPage());
@@ -45,6 +59,10 @@ async function init() {
         try {
           await setVersion(select.value);
           editorApi.relint();
+          // Refresh sidebar with new version's registry data
+          const source = editorApi.getContent();
+          const pos = editorApi.view.state.selection.main.head;
+          sidebar.update(source, pos);
         } catch (err) {
           console.error('Failed to switch version:', err);
         }

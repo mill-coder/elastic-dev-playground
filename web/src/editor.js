@@ -73,6 +73,7 @@ function createLogstashLinter() {
 
 export function createEditor(parent) {
   const linterCompartment = new Compartment();
+  let cursorCallback = null;
 
   const view = new EditorView({
     state: EditorState.create({
@@ -85,6 +86,11 @@ export function createEditor(parent) {
         EditorView.theme({
           '&': { height: '100%' },
           '.cm-scroller': { overflow: 'auto' },
+        }),
+        EditorView.updateListener.of((update) => {
+          if (update.selectionSet || update.docChanged) {
+            if (cursorCallback) cursorCallback(update.state.selection.main.head);
+          }
         }),
       ],
     }),
@@ -105,6 +111,9 @@ export function createEditor(parent) {
       view.dispatch({
         effects: linterCompartment.reconfigure(createLogstashLinter()),
       });
+    },
+    onCursorActivity(callback) {
+      cursorCallback = callback;
     },
   };
 }

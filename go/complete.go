@@ -317,6 +317,152 @@ func buildCompletions(ctx completionContext) []completionOption {
 	return nil
 }
 
+// detectStructuralContext determines the structural nesting context at pos,
+// ignoring value positions, strings, and comments. Used by the sidebar
+// to always show relevant plugin/option info regardless of cursor detail.
+func detectStructuralContext(source string, pos int) completionContext {
+	if pos > len(source) {
+		pos = len(source)
+	}
+
+	// Only do the forward brace-nesting scan (Pass B from detectContext).
+	var stack []frame
+	i := 0
+	for i < pos {
+		ch := source[i]
+
+		// Skip comments
+		if ch == '#' {
+			for i < len(source) && source[i] != '\n' {
+				i++
+			}
+			continue
+		}
+
+		// Skip double-quoted strings
+		if ch == '"' {
+			i++
+			for i < len(source) && source[i] != '"' {
+				if source[i] == '\\' {
+					i++
+				}
+				i++
+			}
+			if i < len(source) {
+				i++ // skip closing quote
+			}
+			continue
+		}
+
+		// Skip single-quoted strings
+		if ch == '\'' {
+			i++
+			for i < len(source) && source[i] != '\'' {
+				if source[i] == '\\' {
+					i++
+				}
+				i++
+			}
+			if i < len(source) {
+				i++
+			}
+			continue
+		}
+
+		if ch == '{' {
+			sectionType := currentSectionType(stack)
+			stack = append(stack, frame{kind: frameConditional, sectionType: sectionType})
+			i++
+			continue
+		}
+
+		if ch == '}' {
+			if len(stack) > 0 {
+				stack = stack[:len(stack)-1]
+			}
+			i++
+			continue
+		}
+
+		if ch == '=' && i+1 < len(source) && source[i+1] == '>' {
+			i += 2
+			for i < len(source) && (source[i] == ' ' || source[i] == '\t' || source[i] == '\n' || source[i] == '\r') {
+				i++
+			}
+			if i < len(source) && source[i] == '{' {
+				sectionType := currentSectionType(stack)
+				stack = append(stack, frame{kind: frameHash, sectionType: sectionType})
+				i++
+			}
+			continue
+		}
+
+		if isIdentStart(ch) {
+			start := i
+			for i < len(source) && isIdentChar(source[i]) {
+				i++
+			}
+			ident := source[start:i]
+
+			j := i
+			for j < len(source) && (source[j] == ' ' || source[j] == '\t' || source[j] == '\n' || source[j] == '\r') {
+				j++
+			}
+
+			if j < len(source) && source[j] == '{' {
+				switch ident {
+				case "input":
+					stack = append(stack, frame{kind: frameSection, sectionType: ast.Input})
+				case "filter":
+					stack = append(stack, frame{kind: frameSection, sectionType: ast.Filter})
+				case "output":
+					stack = append(stack, frame{kind: frameSection, sectionType: ast.Output})
+				case "if", "else":
+					sectionType := currentSectionType(stack)
+					stack = append(stack, frame{kind: frameConditional, sectionType: sectionType})
+				default:
+					sectionType := currentSectionType(stack)
+					topKind := currentFrameKind(stack)
+					if topKind == frameSection || topKind == frameConditional {
+						stack = append(stack, frame{kind: framePlugin, sectionType: sectionType, pluginName: ident})
+					} else {
+						stack = append(stack, frame{kind: frameHash, sectionType: sectionType})
+					}
+				}
+				i = j + 1
+				continue
+			}
+			continue
+		}
+
+		i++
+	}
+
+	if len(stack) == 0 {
+		return completionContext{Kind: "section"}
+	}
+
+	top := stack[len(stack)-1]
+	switch top.kind {
+	case frameSection:
+		return completionContext{Kind: "plugin", SectionType: top.sectionType}
+	case framePlugin:
+		return completionContext{Kind: "option", SectionType: top.sectionType, PluginName: top.pluginName}
+	case frameConditional:
+		return completionContext{Kind: "plugin", SectionType: top.sectionType}
+	case frameHash:
+		// For hash values, walk up the stack to find the enclosing plugin
+		for si := len(stack) - 2; si >= 0; si-- {
+			if stack[si].kind == framePlugin {
+				return completionContext{Kind: "option", SectionType: stack[si].sectionType, PluginName: stack[si].pluginName}
+			}
+		}
+		return completionContext{Kind: "none"}
+	}
+
+	return completionContext{Kind: "none"}
+}
+
 // getCompletions is the WASM entry point for code completion.
 func getCompletions(this js.Value, args []js.Value) interface{} {
 	if len(args) < 2 {

@@ -15,22 +15,42 @@ import (
 //go:embed registrydata/*.json
 var registryFS embed.FS
 
+// pluginDoc holds rich documentation for a plugin (populated in Phase B).
+type pluginDoc struct {
+	Description string                `json:"description,omitempty"`
+	Options     map[string]*optionDoc `json:"options,omitempty"`
+}
+
+// optionDoc holds rich documentation for a single option (populated in Phase B).
+type optionDoc struct {
+	Type        string `json:"type,omitempty"`
+	Required    bool   `json:"required,omitempty"`
+	Default     string `json:"default,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
 // registryData mirrors the JSON structure produced by the scraper.
 type registryData struct {
-	Version       string              `json:"version"`
-	Plugins       map[string][]string `json:"plugins"`
-	Codecs        []string            `json:"codecs"`
-	CommonOptions map[string][]string `json:"commonOptions"`
-	PluginOptions map[string][]string `json:"pluginOptions"`
+	Version          string                        `json:"version"`
+	Plugins          map[string][]string           `json:"plugins"`
+	Codecs           []string                      `json:"codecs"`
+	CommonOptions    map[string][]string           `json:"commonOptions"`
+	PluginOptions    map[string][]string           `json:"pluginOptions"`
+	PluginDocs       map[string]*pluginDoc         `json:"pluginDocs,omitempty"`
+	CodecDocs        map[string]*pluginDoc         `json:"codecDocs,omitempty"`
+	CommonOptionDocs map[string]map[string]*optionDoc `json:"commonOptionDocs,omitempty"`
 }
 
 var (
-	mu             sync.RWMutex
-	currentVersion string
-	knownPlugins   map[ast.PluginType]map[string]bool
-	knownCodecs    map[string]bool
-	commonOptions  map[ast.PluginType]map[string]bool
-	pluginOptions  map[string]map[string]bool // key: "input/elasticsearch"
+	mu               sync.RWMutex
+	currentVersion   string
+	knownPlugins     map[ast.PluginType]map[string]bool
+	knownCodecs      map[string]bool
+	commonOptions    map[ast.PluginType]map[string]bool
+	pluginOptions    map[string]map[string]bool // key: "input/elasticsearch"
+	pluginDocs       map[string]*pluginDoc      // key: "input/elasticsearch"
+	codecDocs        map[string]*pluginDoc      // key: "json"
+	commonOptionDocs map[string]map[string]*optionDoc // key: "input" -> option name -> doc
 )
 
 var pluginTypeMap = map[string]ast.PluginType{
@@ -136,6 +156,20 @@ func loadVersion(version string) error {
 		newOptions[key] = m
 	}
 
+	// Build doc maps (gracefully handle missing — Phase B data)
+	newPluginDocs := make(map[string]*pluginDoc, len(rd.PluginDocs))
+	for k, v := range rd.PluginDocs {
+		newPluginDocs[k] = v
+	}
+	newCodecDocs := make(map[string]*pluginDoc, len(rd.CodecDocs))
+	for k, v := range rd.CodecDocs {
+		newCodecDocs[k] = v
+	}
+	newCommonOptionDocs := make(map[string]map[string]*optionDoc, len(rd.CommonOptionDocs))
+	for k, v := range rd.CommonOptionDocs {
+		newCommonOptionDocs[k] = v
+	}
+
 	mu.Lock()
 	defer mu.Unlock()
 	currentVersion = version
@@ -143,6 +177,9 @@ func loadVersion(version string) error {
 	knownCodecs = newCodecs
 	commonOptions = newCommon
 	pluginOptions = newOptions
+	pluginDocs = newPluginDocs
+	codecDocs = newCodecDocs
+	commonOptionDocs = newCommonOptionDocs
 
 	return nil
 }
@@ -191,4 +228,40 @@ func getPluginOptions(pluginType ast.PluginType, pluginName string) map[string]b
 		merged[k] = true
 	}
 	return merged
+}
+
+// getPluginDocInfo returns the plugin doc for a given section type and plugin name.
+func getPluginDocInfo(sectionType, pluginName string) *pluginDoc {
+	mu.RLock()
+	defer mu.RUnlock()
+
+	if sectionType == "codec" {
+		return codecDocs[pluginName]
+	}
+	key := sectionType + "/" + pluginName
+	return pluginDocs[key]
+}
+
+// getOptionDocInfo returns the option doc for a given plugin option.
+// Checks plugin-specific docs first, then common option docs.
+func getOptionDocInfo(sectionType, pluginName, optionName string) *optionDoc {
+	mu.RLock()
+	defer mu.RUnlock()
+
+	// Check plugin-specific option docs
+	key := sectionType + "/" + pluginName
+	if pd, ok := pluginDocs[key]; ok && pd != nil && pd.Options != nil {
+		if od, ok := pd.Options[optionName]; ok {
+			return od
+		}
+	}
+
+	// Check common option docs
+	if commonDocs, ok := commonOptionDocs[sectionType]; ok {
+		if od, ok := commonDocs[optionName]; ok {
+			return od
+		}
+	}
+
+	return nil
 }

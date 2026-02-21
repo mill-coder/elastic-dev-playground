@@ -4,25 +4,41 @@ Elastic platform engineering toolkit — a suite of browser-based developer tool
 
 Everything runs client-side — the production Docker image includes a lightweight Node.js server for API proxying.
 
-### special thanks
+### Special thanks
 
 Special thanks for the work done by [breml](https://github.com/breml) for his logstash config parser: [breml/logstash-config](https://github.com/breml/logstash-config)
 
 
 ## Features
 
-### logstash pipeline config writer
+### Logstash Pipeline Config Editor
 
-- **Syntax error highlighting** — red underlines and gutter icons on parse errors, powered by [breml/logstash-config](https://github.com/breml/logstash-config) PEG parser
+A full-featured browser-based editor for Logstash pipeline configurations, with real-time feedback powered by a Go parser compiled to WebAssembly.
+
+- **Context-aware documentation** — sidebar shows plugin descriptions, option types, defaults, and required flags based on cursor position
+- **Code completion** — auto-complete for section names, plugin names, plugin options, and codecs
 - **Semantic validation** — yellow warnings for unknown plugin names, unknown options, and invalid codec names
+- **Syntax error highlighting** — red underlines and gutter icons on parse errors, powered by [breml/logstash-config](https://github.com/breml/logstash-config) PEG parser
+- **Multi-version registry** — switch between Logstash versions (8.15, 8.17, 8.19) with version-specific plugin data
 - **Kibana pipeline management** — connect to Kibana to list, load, save, and delete Logstash pipelines via Centralized Pipeline Management
-- **Dark theme editor** — CodeMirror 6 with monospace font, fills the viewport
+
+![Editor with context sidebar](docs/images/editor-context-sidebar.png)
+*Contextual documentation sidebar showing plugin options with types, defaults, and descriptions*
+
+![Code completion](docs/images/editor-code-completion.png)
+*Code completion for filter plugins with the sidebar listing all available plugins*
+
+![Semantic validation](docs/images/editor-validation.png)
+*Semantic validation warning for unknown option `unknown_option` in the mutate filter*
 
 ### Import Data
 
 - **Cross-cluster data copy** — copy documents from one Elasticsearch cluster to another using scroll/bulk API
 - **Index filtering** — select source indices, apply query filters
 - **Progress tracking** — real-time document count and transfer status
+
+![Import Data](docs/images/import-data.png)
+*Import Data page with source/destination connections and query configuration*
 
 
 ## Quick start

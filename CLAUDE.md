@@ -18,6 +18,7 @@ Elastic platform engineering toolkit — a suite of browser-based developer tool
 | 4 | Registry scraper | `plans/feature-4-registry-scraper.md` | Done |
 | 5 | Kibana pipeline management | `plans/feature-5-kibana-pipelines.md` | Done |
 | 6 | Import data | `plans/feature-6-import-data.md` | Done |
+| 7 | Contextual doc sidebar | `plans/feature-7-contextual-doc-sidebar.md` | Done |
 
 ## Architecture
 
@@ -26,6 +27,7 @@ Browser-based SPA (Vite + vanilla JS)
 ├── Logstash Editor — CodeMirror 6 + Go WASM parser
 │   ├── Live syntax errors (pigeon parser → diagnostics)
 │   ├── Semantic validation (AST walker + plugin registry)
+│   ├── Contextual doc sidebar (cursor-aware plugin/option docs)
 │   └── Kibana CPM integration (list/load/save/delete pipelines)
 ├── Import Data — Copy data between ES clusters via scroll/bulk API
 ├── Documentation — in-app feature reference
@@ -44,6 +46,7 @@ For the detailed parser→CodeMirror data flow, see [`docs/parser-integration.md
 | Web frontend | Vite + CodeMirror 6 | `web/` |
 | Kibana integration | Vite proxy + fetch API | `web/src/kibana-api.js`, `web/src/pipeline-panel.js` |
 | Import data | Vite proxy + ES scroll/bulk API | `web/src/elasticsearch-api.js`, `web/src/import-data.js` |
+| Context sidebar | WASM context API + vanilla JS | `go/contextinfo.go`, `web/src/context-sidebar.js` |
 | Production server | Node.js (built-in modules) | `server.js` |
 | Build system | Makefile | root |
 
@@ -87,7 +90,8 @@ elastic-dev-playground/
 │   ├── registry.go        # Embedded JSON registry loader (go:embed)
 │   ├── registrydata/      # Auto-generated versioned plugin registry JSON
 │   │   └── 8.19.json
-│   └── validate.go        # AST walker for semantic validation
+│   ├── validate.go        # AST walker for semantic validation
+│   └── contextinfo.go     # Context API for sidebar (cursor-aware docs)
 └── web/
     ├── package.json
     ├── vite.config.js
@@ -98,6 +102,7 @@ elastic-dev-playground/
     │   ├── editor.js        # CodeMirror 6 setup + lint integration
     │   ├── kibana-api.js    # Kibana CPM API client (list/get/save/delete)
     │   ├── pipeline-panel.js # Pipeline panel UI (connect, load, save)
+    │   ├── context-sidebar.js # Contextual documentation sidebar
     │   ├── elasticsearch-api.js # ES API client (scroll, bulk, count, mapping)
     │   ├── import-data.js   # Import Data page (source→dest copy with filters)
     │   └── style.css
