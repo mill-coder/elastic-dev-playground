@@ -1,4 +1,4 @@
-import { initWasm } from './wasm-bridge.js';
+import { initWasm, getVersions, setVersion } from './wasm-bridge.js';
 import { createEditor } from './editor.js';
 import { createPipelinePanel } from './pipeline-panel.js';
 import { createImportDataPage } from './import-data.js';
@@ -29,6 +29,28 @@ async function init() {
     await initWasm();
     parserStatus.text = 'Parser ready';
     parserStatus.state = 'ready';
+
+    // Populate version dropdown
+    const versionInfo = await getVersions();
+    if (versionInfo.versions && versionInfo.versions.length > 0) {
+      const select = document.getElementById('version-select');
+      for (const v of versionInfo.versions) {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        if (v === versionInfo.current) opt.selected = true;
+        select.appendChild(opt);
+      }
+      select.addEventListener('change', async () => {
+        try {
+          await setVersion(select.value);
+          editorApi.relint();
+        } catch (err) {
+          console.error('Failed to switch version:', err);
+        }
+      });
+      document.getElementById('version-selector').style.display = '';
+    }
   } catch (err) {
     parserStatus.text = `Failed to load parser: ${err.message}`;
     parserStatus.state = 'error';

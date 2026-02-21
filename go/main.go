@@ -114,7 +114,35 @@ func marshal(r ParseResult) string {
 	return string(b)
 }
 
+func setLogstashVersion(this js.Value, args []js.Value) interface{} {
+	if len(args) < 1 {
+		b, _ := json.Marshal(map[string]interface{}{"ok": false, "error": "no version provided"})
+		return string(b)
+	}
+	version := args[0].String()
+	if err := loadVersion(version); err != nil {
+		b, _ := json.Marshal(map[string]interface{}{"ok": false, "error": err.Error()})
+		return string(b)
+	}
+	b, _ := json.Marshal(map[string]interface{}{"ok": true})
+	return string(b)
+}
+
+func getLogstashVersions(this js.Value, args []js.Value) interface{} {
+	mu.RLock()
+	cur := currentVersion
+	mu.RUnlock()
+	b, _ := json.Marshal(map[string]interface{}{
+		"versions": availableVersions(),
+		"current":  cur,
+	})
+	return string(b)
+}
+
 func main() {
+	initRegistry()
 	js.Global().Set("parseLogstashConfig", js.FuncOf(parseLogstash))
+	js.Global().Set("setLogstashVersion", js.FuncOf(setLogstashVersion))
+	js.Global().Set("getLogstashVersions", js.FuncOf(getLogstashVersions))
 	select {}
 }

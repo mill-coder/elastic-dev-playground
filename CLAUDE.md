@@ -15,7 +15,7 @@ Elastic platform engineering toolkit — a suite of browser-based developer tool
 | 1 | Syntax error highlighting | `plans/feature-1-syntax-errors.md` | Done |
 | 2 | Semantic validation | `plans/feature-2-semantic-validation.md` | Done |
 | 3 | Code completion | `plans/feature-3-code-completion.md` | Not started |
-| 4 | Registry scraper | `plans/feature-4-registry-scraper.md` | Not started |
+| 4 | Registry scraper | `plans/feature-4-registry-scraper.md` | Done |
 | 5 | Kibana pipeline management | `plans/feature-5-kibana-pipelines.md` | Done |
 | 6 | Import data | `plans/feature-6-import-data.md` | Done |
 
@@ -39,6 +39,8 @@ For the detailed parser→CodeMirror data flow, see [`docs/parser-integration.md
 | Component | Tech | Location |
 |-----------|------|----------|
 | Parser WASM module | Go + `syscall/js` | `go/` |
+| Registry scraper | Go CLI (stdlib-only) | `tools/scrape-registry/` |
+| Registry data | JSON (go:embed) | `go/registrydata/` |
 | Web frontend | Vite + CodeMirror 6 | `web/` |
 | Kibana integration | Vite proxy + fetch API | `web/src/kibana-api.js`, `web/src/pipeline-panel.js` |
 | Import data | Vite proxy + ES scroll/bulk API | `web/src/elasticsearch-api.js`, `web/src/import-data.js` |
@@ -74,11 +76,17 @@ elastic-dev-playground/
 ├── Makefile               # Build targets: wasm, dev, build, clean
 ├── .gitignore
 ├── LICENSE
+├── tools/
+│   └── scrape-registry/   # Standalone Go CLI to scrape plugin metadata
+│       ├── go.mod
+│       └── main.go
 ├── go/
 │   ├── go.mod
 │   ├── go.sum
 │   ├── main.go            # WASM entry: parser bridge + error extraction
-│   ├── registry.go        # Known plugins, codecs, and option schemas
+│   ├── registry.go        # Embedded JSON registry loader (go:embed)
+│   ├── registrydata/      # Auto-generated versioned plugin registry JSON
+│   │   └── 8.19.json
 │   └── validate.go        # AST walker for semantic validation
 └── web/
     ├── package.json
@@ -112,6 +120,9 @@ elastic-dev-playground/
 make dev      # Build WASM + start Vite dev server
 make build    # Production build into dist/
 make clean    # Remove all build artifacts
+
+# Scrape plugin registry for a Logstash version
+make registry VERSION=8.19
 
 # Docker
 docker build -t elastic-dev-playground .
