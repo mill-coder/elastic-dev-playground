@@ -1,7 +1,8 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { EditorState, Compartment } from '@codemirror/state';
 import { linter, lintGutter } from '@codemirror/lint';
-import { parseLogstash } from './wasm-bridge.js';
+import { autocompletion } from '@codemirror/autocomplete';
+import { parseLogstash, getCompletions } from './wasm-bridge.js';
 
 const SAMPLE = `input {
   beats {
@@ -22,6 +23,21 @@ output {
   }
 }
 `;
+
+async function logstashCompletionSource(context) {
+  const word = context.matchBefore(/[a-zA-Z_][a-zA-Z0-9_]*/);
+  if (!word && !context.explicit) return null;
+
+  const source = context.state.doc.toString();
+  const result = await getCompletions(source, context.pos);
+  if (!result.options || result.options.length === 0) return null;
+
+  return {
+    from: result.from,
+    options: result.options,
+    validFor: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
+  };
+}
 
 function createLogstashLinter() {
   return linter(async (view) => {
@@ -63,6 +79,7 @@ export function createEditor(parent) {
       doc: SAMPLE,
       extensions: [
         basicSetup,
+        autocompletion({ override: [logstashCompletionSource] }),
         lintGutter(),
         linterCompartment.of(createLogstashLinter()),
         EditorView.theme({

@@ -144,5 +144,6 @@ func main() {
 	js.Global().Set("parseLogstashConfig", js.FuncOf(parseLogstash))
 	js.Global().Set("setLogstashVersion", js.FuncOf(setLogstashVersion))
 	js.Global().Set("getLogstashVersions", js.FuncOf(getLogstashVersions))
+	js.Global().Set("getLogstashCompletions", js.FuncOf(getCompletions))
 	select {}
 }

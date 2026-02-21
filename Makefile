@@ -10,7 +10,7 @@ WASM_EXEC_SRC = $(firstword $(wildcard $(GOROOT)/lib/wasm/wasm_exec.js $(GOROOT)
 all: wasm wasm-exec deps build
 
 wasm: $(WASM_OUT)
-$(WASM_OUT): go/main.go go/registry.go go/validate.go go/go.mod $(wildcard go/registrydata/*.json)
+$(WASM_OUT): go/main.go go/registry.go go/validate.go go/complete.go go/go.mod $(wildcard go/registrydata/*.json)
 	cd go && GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o ../$(WASM_OUT) .
 
 wasm-exec: $(WASM_EXEC)

@@ -14,7 +14,7 @@ Elastic platform engineering toolkit — a suite of browser-based developer tool
 |---|---------|------|--------|
 | 1 | Syntax error highlighting | `plans/feature-1-syntax-errors.md` | Done |
 | 2 | Semantic validation | `plans/feature-2-semantic-validation.md` | Done |
-| 3 | Code completion | `plans/feature-3-code-completion.md` | Not started |
+| 3 | Code completion | `plans/feature-3-code-completion.md` | Done |
 | 4 | Registry scraper | `plans/feature-4-registry-scraper.md` | Done |
 | 5 | Kibana pipeline management | `plans/feature-5-kibana-pipelines.md` | Done |
 | 6 | Import data | `plans/feature-6-import-data.md` | Done |

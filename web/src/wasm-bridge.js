@@ -25,6 +25,12 @@ export async function getVersions() {
   return JSON.parse(jsonStr);
 }
 
+export async function getCompletions(source, pos) {
+  if (!wasmReady) await readyPromise;
+  const jsonStr = window.getLogstashCompletions(source, pos);
+  return JSON.parse(jsonStr);
+}
+
 export async function setVersion(version) {
   if (!wasmReady) await readyPromise;
   const jsonStr = window.setLogstashVersion(version);
