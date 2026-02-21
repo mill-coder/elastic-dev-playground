@@ -84,9 +84,39 @@ export function createEditor(parent) {
         lintGutter(),
         linterCompartment.of(createLogstashLinter()),
         EditorView.theme({
-          '&': { height: '100%' },
+          // Layout
+          '&': { height: '100%', backgroundColor: '#1e1e1e', color: '#d4d4d4' },
           '.cm-scroller': { overflow: 'auto' },
-        }),
+          // Gutters
+          '.cm-gutters': { backgroundColor: '#1e1e1e', borderRight: '1px solid #3c3c3c', color: '#858585' },
+          '.cm-activeLineGutter': { backgroundColor: '#2a2d2e' },
+          // Active line & cursor
+          '.cm-activeLine': { backgroundColor: '#2a2d2e' },
+          '.cm-cursor': { borderLeftColor: '#d4d4d4' },
+          // Selection
+          '.cm-selectionBackground': { backgroundColor: '#264f78' },
+          '&.cm-focused .cm-selectionBackground': { backgroundColor: '#264f78' },
+          // Tooltips
+          '.cm-tooltip': { backgroundColor: '#252526', border: '1px solid #3c3c3c', color: '#d4d4d4' },
+          '.cm-tooltip-autocomplete': { backgroundColor: '#252526' },
+          '.cm-tooltip-autocomplete > ul > li[aria-selected]': { backgroundColor: '#04395e', color: '#ffffff' },
+          '.cm-tooltip-section': { borderTop: '1px solid #3c3c3c' },
+          '.cm-completionDetail': { color: '#888' },
+          '.cm-completionMatchedText': { color: '#4ec9b0', textDecoration: 'none' },
+          // Lint diagnostics
+          '.cm-tooltip-lint': { backgroundColor: '#252526', border: '1px solid #3c3c3c' },
+          '.cm-diagnostic': { color: '#d4d4d4' },
+          '.cm-diagnostic-error': { color: '#f44747' },
+          '.cm-diagnostic-warning': { color: '#cca700' },
+          '.cm-diagnosticAction': { backgroundColor: '#3c3c3c', color: '#d4d4d4' },
+          '.cm-diagnosticSource': { color: '#888' },
+          // Panels (lint panel, search)
+          '.cm-panel': { backgroundColor: '#252526', color: '#d4d4d4', borderTop: '1px solid #3c3c3c' },
+          '.cm-panel button': { backgroundColor: '#3c3c3c', color: '#d4d4d4' },
+          '.cm-textfield': { backgroundColor: '#3c3c3c', color: '#d4d4d4', border: '1px solid #555' },
+          '.cm-search': { backgroundColor: '#252526', color: '#d4d4d4' },
+          '.cm-button': { backgroundColor: '#3c3c3c', color: '#d4d4d4', border: '1px solid #555' },
+        }, { dark: true }),
         EditorView.updateListener.of((update) => {
           if (update.selectionSet || update.docChanged) {
             if (cursorCallback) cursorCallback(update.state.selection.main.head);
