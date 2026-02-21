@@ -3,7 +3,7 @@ FROM docker.io/library/golang:1.25 AS wasm-builder
 WORKDIR /src
 COPY go/ ./go/
 RUN cd go && GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o /out/parser.wasm .
-RUN cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" /out/wasm_exec.js
+RUN cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" /out/wasm_exec.js
 
 # Stage 2: Build frontend
 FROM docker.io/library/node:22-alpine AS web-builder
