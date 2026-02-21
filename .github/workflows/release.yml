@@ -57,7 +57,7 @@ jobs:
       - name: Go dependency scan (osv-scanner)
         run: |
           go install github.com/google/osv-scanner/v2/cmd/osv-scanner@latest
-          osv-scanner scan --lockfile=go/go.sum
+          osv-scanner scan source go/
 
       - name: npm audit
         run: cd web && npm audit --audit-level=high
