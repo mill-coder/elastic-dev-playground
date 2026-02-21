@@ -1,5 +1,5 @@
 # Stage 1: Build WASM module
-FROM docker.io/library/golang:1.22 AS wasm-builder
+FROM docker.io/library/golang:1.25 AS wasm-builder
 WORKDIR /src
 COPY go/ ./go/
 RUN cd go && GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o /out/parser.wasm .
