@@ -26,12 +26,12 @@ jobs:
           node-version: '22'
 
       - name: Go vet
-        run: cd go && go vet ./...
+        run: cd go && GOOS=js GOARCH=wasm go vet ./...
 
       - name: Staticcheck (Go)
-        uses: dominikh/staticcheck-action@v1
-        with:
-          working-directory: go
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          cd go && GOOS=js GOARCH=wasm staticcheck ./...
 
       - name: Install JS dependencies
         run: cd web && npm ci
@@ -53,10 +53,13 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Build WASM binary for scanning
+        run: cd go && GOOS=js GOARCH=wasm go build -o parser.wasm .
+
       - name: Go vulnerability check
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
-          cd go && govulncheck ./...
+          govulncheck -mode binary go/parser.wasm
 
       - name: npm audit
         run: cd web && npm audit --audit-level=high
